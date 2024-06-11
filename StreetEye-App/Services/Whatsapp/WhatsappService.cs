@@ -1,19 +1,15 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace StreetEye_App.Services.Whatsapp
 {
-    public class Whatsapp
+    public class WhatsappService
     {
         private readonly HttpClient _httpClient;
-        private const string ApiKey = "YOUR_GUPSHUP_API_KEY"; //configurar
-        private const string ApiUrl = "https://api.gupshup.io/sm/api/v1/msg"; //configurar
+        private const string ApiKey = "YOUR_GUPSHUP_API_KEY"; // Substituir pelo valor real
+        private const string ApiUrl = "https://api.gupshup.io/sm/api/v1/msg"; // URL da API do Gupshup
 
-        public Whatsapp()
+        public WhatsappService()
         {
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("apikey", ApiKey);
@@ -23,8 +19,8 @@ namespace StreetEye_App.Services.Whatsapp
         {
             var payload = new
             {
-                channel = "whatsapp", //configurar
-                source = "YOUR_WHATSAPP_NUMBER", //configurar
+                channel = "whatsapp", // Configuração do canal
+                source = "YOUR_WHATSAPP_NUMBER", // Substituir pelo número do WhatsApp registrado no Gupshup
                 destination = phoneNumber,
                 message = new
                 {
@@ -33,10 +29,30 @@ namespace StreetEye_App.Services.Whatsapp
                 }
             };
 
-            var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync(ApiUrl, content);
+            try
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync(ApiUrl, content);
 
-            return response.IsSuccessStatusCode;
+                if (response.IsSuccessStatusCode)
+                {
+                    // Log ou ação adicional em caso de sucesso
+                    return true;
+                }
+                else
+                {
+                    // Log ou ação adicional em caso de falha
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Erro ao enviar mensagem: {responseContent}");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Tratamento de exceções
+                Console.WriteLine($"Exception: {ex.Message}");
+                return false;
+            }
         }
     }
 }
